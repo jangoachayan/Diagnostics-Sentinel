@@ -1,5 +1,6 @@
 name: "KNX Sentinel"
-version: "0.1.2"
+version: "0.1.3"
+slug: "knx_sentinel"
 description: "High-fidelity KNX monitoring and diagnostic agent."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
 arch:
@@ -21,6 +22,9 @@ options:
   mqtt_username: ""
   mqtt_password: ""
   mqtt_use_tls: false
+  target_entities:
+    - "sensor.knx*"
+    - "input_boolean.monitor*"
 schema:
   client_id: str
   site_id: str
@@ -29,3 +33,4 @@ schema:
   mqtt_username: str
   mqtt_password: str
   mqtt_use_tls: bool
+  target_entities: [str]
