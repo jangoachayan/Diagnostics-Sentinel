@@ -40,10 +40,19 @@ def load_options() -> Dict[str, Any]:
         "target_entities": ["sensor.*", "input_boolean.*"]
     }
 
-def get_supervisor_token() -> str:
+    # Debug: Dump env keys to see what's available
+    env_keys = list(os.environ.keys())
+    logger.info(f"Environment Keys: {env_keys}")
+
     token = os.environ.get("SUPERVISOR_TOKEN", "").strip()
     if not token:
-        logger.warning("SUPERVISOR_TOKEN not found! Using 'fake_token' for dev.")
+        # Fallback check
+        token = os.environ.get("HASSIO_TOKEN", "").strip()
+        if token:
+           logger.info("Found token in HASSIO_TOKEN.")
+
+    if not token:
+        logger.warning("SUPERVISOR_TOKEN (and HASSIO_TOKEN) not found! Using 'fake_token' for dev.")
         return "fake_token"
     
     logger.info(f"SUPERVISOR_TOKEN found. Length: {len(token)} chars. First 4: {token[:4]}...")

@@ -1,5 +1,5 @@
 name: "KNX Sentinel"
-version: "0.1.8"
+version: "0.1.9"
 slug: "knx_sentinel"
 description: "High-fidelity KNX monitoring and diagnostic agent."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
@@ -13,6 +13,7 @@ boot: auto
 init: false
 host_network: true
 homeassistant_api: true
+hassio_api: true
 map:
   - config:rw
 options:
