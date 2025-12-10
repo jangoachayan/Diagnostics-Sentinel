@@ -1,0 +1,6 @@
+tests/
+mock/
+__pycache__/
+*.pyc
+.git/
+.gitignore
