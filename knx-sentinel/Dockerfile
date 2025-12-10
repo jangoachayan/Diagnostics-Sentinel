@@ -10,7 +10,6 @@ RUN pip3 install --no-cache-dir \
 # Copy data for add-on
 COPY src /app/src
 COPY run.py /app/run.py
-COPY run.sh /etc/services.d/knx-sentinel/run
 
-# Fix permissions
-RUN chmod a+x /etc/services.d/knx-sentinel/run
+# Bypass S6 init and run python directly to ensure env vars are present
+ENTRYPOINT [ "python3", "/app/run.py" ]
