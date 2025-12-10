@@ -41,10 +41,12 @@ def load_options() -> Dict[str, Any]:
     }
 
 def get_supervisor_token() -> str:
-    token = os.environ.get("SUPERVISOR_TOKEN")
+    token = os.environ.get("SUPERVISOR_TOKEN", "").strip()
     if not token:
         logger.warning("SUPERVISOR_TOKEN not found! Using 'fake_token' for dev.")
         return "fake_token"
+    
+    logger.info(f"SUPERVISOR_TOKEN found. Length: {len(token)} chars. First 4: {token[:4]}...")
     return token
 
 def handle_event(event: dict, mqtt: MQTTEgress):
