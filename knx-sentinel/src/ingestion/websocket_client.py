@@ -30,9 +30,11 @@ class HomeAssistantClient:
         while not self._shutdown:
             try:
                 logger.info(f"Connecting to {self.url}...")
+                headers = {"Authorization": f"Bearer {self.token}"}
+                logger.debug("Connecting with headers.")
                 async with aiohttp.ClientSession() as session:
                     self.session = session
-                    async with session.ws_connect(self.url) as ws:
+                    async with session.ws_connect(self.url, headers=headers) as ws:
                         self.ws = ws
                         logger.info("Connected.")
                         retry_delay = 1 # Reset backoff on successful connection
