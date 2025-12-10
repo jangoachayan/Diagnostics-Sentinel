@@ -71,7 +71,13 @@ def handle_event(event: dict, mqtt: MQTTEgress):
             return
             
         try:
-            state_val = float(new_state.get("state"))
+            raw_state = new_state.get("state")
+            if raw_state == "on":
+                state_val = 1.0
+            elif raw_state == "off":
+                state_val = 0.0
+            else:
+                state_val = float(raw_state)
             
             # 1. Z-Score Analysis
             if entity_id not in z_engines:

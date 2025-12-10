@@ -1,5 +1,5 @@
 name: "KNX Sentinel"
-version: "0.1.12"
+version: "0.1.13"
 slug: "knx_sentinel"
 description: "High-fidelity KNX monitoring and diagnostic agent."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
