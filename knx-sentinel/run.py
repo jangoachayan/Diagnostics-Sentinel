@@ -110,11 +110,16 @@ def handle_event(event: dict, mqtt: MQTTEgress, watchdog: WatchdogKernel):
             
     elif event_type == "knx_event":
         # Raw KNX Event
+        destination = data.get("destination")
         payload = {
             "timestamp": event.get("event", {}).get("time_fired"),
             "data": data
         }
         mqtt.publish("raw", "knx_bus", payload)
+        
+        # 4. Watchdog Processing (for KNX GA monitoring)
+        if destination:
+            watchdog.process_state(destination, 1.0)
 
 async def main():
     logger.info("Starting KNX Sentinel Agent...")
