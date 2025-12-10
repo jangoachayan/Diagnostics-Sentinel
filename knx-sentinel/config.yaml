@@ -1,6 +1,5 @@
 name: "KNX Sentinel"
 version: "1.0.0"
-slug: "knx_sentinel"
 description: "High-fidelity KNX monitoring and diagnostic agent."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
 arch:
@@ -32,5 +31,4 @@ schema:
   mqtt_username: str
   mqtt_password: str
   mqtt_use_tls: bool
-  target_entities: [str]
-image: "ghcr.io/home-assistant/{arch}-addon-base-python:3.11-alpine"
+  target_entities: list(str)
