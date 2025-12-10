@@ -23,15 +23,39 @@ class HomeAssistantClient:
         self._shutdown = False
         self.message_id = 1
 
+    async def check_token_via_rest(self) -> bool:
+        """Diagnostic: Check if token works for REST API."""
+        api_url = self.url.replace("ws://", "http://").replace("/websocket", "/api/")
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json",
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(api_url, headers=headers, timeout=5) as resp:
+                    if resp.status == 200:
+                        logger.info("REST API Diagnostic: SUCCESS. Token is accepted.")
+                        return True
+                    else:
+                        text = await resp.text()
+                        logger.error(f"REST API Diagnostic: FAILED. Status: {resp.status}. Response: {text}")
+                        return False
+        except Exception as e:
+            logger.error(f"REST API Diagnostic: ERROR connecting to {api_url}: {e}")
+            return False
+
     async def connect(self):
         """Main loop: connect, authenticate, listen, retry."""
         retry_delay = 1
+        
+        # Run diagnostic once
+        await self.check_token_via_rest()
         
         while not self._shutdown:
             try:
                 logger.info(f"Connecting to {self.url}...")
                 headers = {"Authorization": f"Bearer {self.token}"}
-                logger.debug("Connecting with headers.")
+                
                 async with aiohttp.ClientSession() as session:
                     self.session = session
                     async with session.ws_connect(self.url, headers=headers) as ws:
@@ -77,9 +101,10 @@ class HomeAssistantClient:
             await self._subscribe_events()
             
         elif msg_type == "auth_invalid":
-            logger.error("Authentication failed! Check token.")
+            message = data.get("message", "No message provided")
+            logger.error(f"Authentication failed! Reason: {message}")
+            logger.error(f"Sent Token Length: {len(self.token)}")
             # Fatal error, but for robustness we might retry or exit. 
-            # Here we just shutdown to avoid Auth loop.
             # self._shutdown = True 
             
         elif msg_type == "event":
