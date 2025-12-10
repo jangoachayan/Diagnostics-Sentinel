@@ -7,7 +7,10 @@ RUN pip3 install --no-cache-dir \
     paho-mqtt
 
 # Copy data for add-on
+# Copy data for add-on
 COPY src /app/src
 COPY run.py /app/run.py
+COPY run.sh /etc/services.d/knx-sentinel/run
 
-CMD [ "python3", "/app/run.py" ]
+# Fix permissions
+RUN chmod a+x /etc/services.d/knx-sentinel/run
