@@ -4,12 +4,14 @@ import logging
 import os
 import signal
 import sys
+import time
 from typing import Dict, Any
 
 from src.ingestion.websocket_client import HomeAssistantClient
 from src.ingestion.filter import FilterManager
 from src.egress.mqtt import MQTTEgress
 from src.kernel.math_engine import ZScoreEngine, SolarDiagnostic, LinearDiagnostic
+from src.kernel.watchdog import WatchdogKernel
 
 # Configure Logging
 logging.basicConfig(
@@ -37,7 +39,9 @@ def load_options() -> Dict[str, Any]:
         "site_id": os.environ.get("SITE_ID", "dev_site"),
         "mqtt_broker": os.environ.get("MQTT_BROKER", "localhost"),
         "mqtt_port": int(os.environ.get("MQTT_PORT", 1883)),
-        "target_entities": ["sensor.*", "input_boolean.*"]
+        "target_entities": ["sensor.*", "input_boolean.*"],
+        "watchdog_entities": [],
+        "watchdog_timeout": 70
     }
 
 def get_supervisor_token() -> str:
@@ -59,7 +63,7 @@ def get_supervisor_token() -> str:
     logger.info(f"SUPERVISOR_TOKEN found. Length: {len(token)} chars. First 4: {token[:4]}...")
     return token
 
-def handle_event(event: dict, mqtt: MQTTEgress):
+def handle_event(event: dict, mqtt: MQTTEgress, watchdog: WatchdogKernel):
     """Callback for incoming HA events."""
     event_type = event.get("event", {}).get("event_type")
     data = event.get("event", {}).get("data", {})
@@ -96,6 +100,9 @@ def handle_event(event: dict, mqtt: MQTTEgress):
             # 3. Publish
             mqtt.publish("telemetry", entity_id, payload)
             
+            # 4. Watchdog Processing
+            watchdog.process_state(entity_id, state_val)
+            
         except ValueError:
             # Non-numeric state (string), just pass through or ignore
             # But maybe we want to log it as status
@@ -121,10 +128,15 @@ async def main():
     filter_mgr = FilterManager(options.get("target_entities", []))
     mqtt_client = MQTTEgress(options)
     
+    watchdog = WatchdogKernel(
+        entities=options.get("watchdog_entities", []),
+        timeout=options.get("watchdog_timeout", 70)
+    )
+    
     # 3. Main Logic Callback
     def on_message(msg):
         if msg.get("type") == "event":
-            handle_event(msg, mqtt_client)
+            handle_event(msg, mqtt_client, watchdog)
 
     ha_client = HomeAssistantClient(
         supervisor_url=supervisor_url, 
@@ -135,6 +147,24 @@ async def main():
     
     # 4. Start Services
     mqtt_client.start()
+    
+    # Start Watchdog Loop
+    async def watchdog_loop():
+        while not stop_event.is_set():
+            def timeout_callback(eid):
+                # Publish '0' (0.0) on timeout
+                payload = {
+                    "value": 0.0,
+                    "timestamp": time.time(),
+                    "status": "timeout",
+                    "msg": "Watchdog triggered: No heartbeat received"
+                }
+                mqtt_client.publish("telemetry", eid, payload)
+            
+            watchdog.check_timeouts(timeout_callback)
+            await asyncio.sleep(5)
+            
+    watchdog_task = asyncio.create_task(watchdog_loop())
     
     # Graceful Shutdown
     loop = asyncio.get_running_loop()

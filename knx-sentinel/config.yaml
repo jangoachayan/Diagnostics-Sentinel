@@ -1,5 +1,5 @@
 name: "KNX Sentinel"
-version: "0.1.13"
+version: "0.1.15"
 slug: "knx_sentinel"
 description: "High-fidelity KNX monitoring and diagnostic agent."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
@@ -27,6 +27,8 @@ options:
   target_entities:
     - "sensor.knx*"
     - "input_boolean.monitor*"
+  watchdog_entities: []
+  watchdog_timeout: 70
 schema:
   client_id: str
   site_id: str
@@ -36,3 +38,5 @@ schema:
   mqtt_password: str
   mqtt_use_tls: bool
   target_entities: [str]
+  watchdog_entities: [str]
+  watchdog_timeout: int
