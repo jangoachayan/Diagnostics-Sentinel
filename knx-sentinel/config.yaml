@@ -1,11 +1,12 @@
 name: "KNX Sentinel"
-version: "0.1.0"
+version: "0.1.1"
 description: "High-fidelity KNX monitoring and diagnostic agent."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
 arch:
   - aarch64
   - amd64
   - armv7
+  - armhf
 startup: application
 boot: auto
 host_network: true
