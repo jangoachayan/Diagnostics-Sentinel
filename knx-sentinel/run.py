@@ -40,6 +40,7 @@ def load_options() -> Dict[str, Any]:
         "target_entities": ["sensor.*", "input_boolean.*"]
     }
 
+def get_supervisor_token() -> str:
     # Debug: Dump env keys to see what's available
     env_keys = list(os.environ.keys())
     logger.info(f"Environment Keys: {env_keys}")
