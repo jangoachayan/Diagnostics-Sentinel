@@ -1,0 +1,36 @@
+name: "KNX Sentinel"
+version: "1.0.0"
+slug: "knx_sentinel"
+description: "High-fidelity KNX monitoring and diagnostic agent."
+url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
+arch:
+  - aarch64
+  - amd64
+  - armv7
+startup: application
+boot: auto
+host_network: true
+homeassistant_api: true
+map:
+  - config:rw
+options:
+  client_id: "client_default"
+  site_id: "site_dev"
+  mqtt_broker: "192.168.1.100"
+  mqtt_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+  mqtt_use_tls: false
+  target_entities:
+    - "sensor.knx*"
+    - "input_boolean.monitor*"
+schema:
+  client_id: str
+  site_id: str
+  mqtt_broker: str
+  mqtt_port: int
+  mqtt_username: str
+  mqtt_password: str
+  mqtt_use_tls: bool
+  target_entities: [str]
+image: "ghcr.io/home-assistant/{arch}-addon-base-python:3.11-alpine"
