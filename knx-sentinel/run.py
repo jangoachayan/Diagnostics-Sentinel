@@ -120,6 +120,16 @@ def handle_event(event: dict, mqtt: MQTTEgress, watchdog: WatchdogKernel):
         # 4. Watchdog Processing (for KNX GA monitoring)
         if destination:
             watchdog.process_state(destination, 1.0)
+            
+            # 4b. Explicit Feedback: Publish '1' if this is a monitored watchdog entity
+            if destination in watchdog.monitored_entities:
+                 payload = {
+                    "value": 1.0,
+                    "timestamp": event.get("event", {}).get("time_fired"),
+                    "status": "heartbeat",
+                    "msg": "Heartbeat received via KNX Group Address"
+                }
+                 mqtt.publish("telemetry", destination, payload)
 
 async def main():
     logger.info("Starting KNX Sentinel Agent...")
@@ -133,8 +143,12 @@ async def main():
     filter_mgr = FilterManager(options.get("target_entities", []))
     mqtt_client = MQTTEgress(options)
     
+    # Sanitize inputs (strip quotes just in case)
+    raw_watchdogs = options.get("watchdog_entities", [])
+    sanitized_watchdogs = [str(w).strip("'\"") for w in raw_watchdogs]
+
     watchdog = WatchdogKernel(
-        entities=options.get("watchdog_entities", []),
+        entities=sanitized_watchdogs,
         timeout=options.get("watchdog_timeout", 70)
     )
     
