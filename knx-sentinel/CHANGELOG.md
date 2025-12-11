@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.20
+- **Fix**: Resolved `NameError` related to Watchdog map scope in `run.py`.
+- **Note**: Hotfix for Alias feature.
+
 ## 0.1.19
 - **Feature**: Added support for Aliases in Watchdog configuration.
   - You can now specify `Watchdog Entities` as `"Address=Friendly Name"` (e.g., `"6/1/1=binary_sensor.heartbeat"`).

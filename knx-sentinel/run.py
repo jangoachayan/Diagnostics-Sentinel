@@ -63,7 +63,7 @@ def get_supervisor_token() -> str:
     logger.info(f"SUPERVISOR_TOKEN found. Length: {len(token)} chars. First 4: {token[:4]}...")
     return token
 
-def handle_event(event: dict, mqtt: MQTTEgress, watchdog: WatchdogKernel):
+def handle_event(event: dict, mqtt: MQTTEgress, watchdog: WatchdogKernel, watchdog_map: Dict[str, str]):
     """Callback for incoming HA events."""
     event_type = event.get("event", {}).get("event_type")
     data = event.get("event", {}).get("data", {})
@@ -181,7 +181,7 @@ async def main():
                  dest = data.get("destination")
                  logger.info(f"KNX Event Detected: Dest={dest}. Matched={dest in watchdog_addresses}")
 
-            handle_event(msg, mqtt_client, watchdog)
+            handle_event(msg, mqtt_client, watchdog, watchdog_map)
 
     ha_client = HomeAssistantClient(
         supervisor_url=supervisor_url, 
