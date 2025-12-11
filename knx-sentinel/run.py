@@ -123,13 +123,15 @@ def handle_event(event: dict, mqtt: MQTTEgress, watchdog: WatchdogKernel):
             
             # 4b. Explicit Feedback: Publish '1' if this is a monitored watchdog entity
             if destination in watchdog.monitored_entities:
+                 # Use Alias if available
+                 topic_id = watchdog_map.get(destination, destination)
                  payload = {
                     "value": 1.0,
                     "timestamp": event.get("event", {}).get("time_fired"),
                     "status": "heartbeat",
                     "msg": "Heartbeat received via KNX Group Address"
                 }
-                 mqtt.publish("telemetry", destination, payload)
+                 mqtt.publish("telemetry", topic_id, payload)
 
 async def main():
     logger.info("Starting KNX Sentinel Agent...")
@@ -143,13 +145,29 @@ async def main():
     filter_mgr = FilterManager(options.get("target_entities", []))
     mqtt_client = MQTTEgress(options)
     
-    # Sanitize inputs (strip quotes just in case)
+    # Sanitize inputs and build Alias Map
     raw_watchdogs = options.get("watchdog_entities", [])
-    sanitized_watchdogs = [str(w).strip("'\"") for w in raw_watchdogs]
-    logger.info(f"Watchdog Config: Raw={raw_watchdogs} -> Sanitized={sanitized_watchdogs}")
+    watchdog_map = {} # Address -> Alias
+    watchdog_addresses = []
+    
+    for w in raw_watchdogs:
+        w_str = str(w).strip("'\"")
+        if "=" in w_str:
+            parts = w_str.split("=", 1)
+            addr = parts[0].strip()
+            alias = parts[1].strip()
+            watchdog_map[addr] = alias
+            watchdog_addresses.append(addr)
+        else:
+            # Default alias is the address itself
+            w_clean = w_str.strip()
+            watchdog_map[w_clean] = w_clean
+            watchdog_addresses.append(w_clean)
+            
+    logger.info(f"Watchdog Config: Raw={raw_watchdogs} -> Map={watchdog_map}")
 
     watchdog = WatchdogKernel(
-        entities=sanitized_watchdogs,
+        entities=watchdog_addresses,
         timeout=options.get("watchdog_timeout", 70)
     )
     
@@ -161,7 +179,7 @@ async def main():
             if evt.get("event_type") == "knx_event":
                  data = evt.get("data", {})
                  dest = data.get("destination")
-                 logger.info(f"KNX Event Detected: Dest={dest}. Matched={dest in sanitized_watchdogs}")
+                 logger.info(f"KNX Event Detected: Dest={dest}. Matched={dest in watchdog_addresses}")
 
             handle_event(msg, mqtt_client, watchdog)
 
@@ -180,13 +198,15 @@ async def main():
         while not stop_event.is_set():
             def timeout_callback(eid):
                 # Publish '0' (0.0) on timeout
+                # Use Alias if available
+                topic_id = watchdog_map.get(eid, eid)
                 payload = {
                     "value": 0.0,
                     "timestamp": time.time(),
                     "status": "timeout",
                     "msg": "Watchdog triggered: No heartbeat received"
                 }
-                mqtt_client.publish("telemetry", eid, payload)
+                mqtt_client.publish("telemetry", topic_id, payload)
             
             watchdog.check_timeouts(timeout_callback)
             await asyncio.sleep(5)
