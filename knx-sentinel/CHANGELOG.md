@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0
+- **Release**: Official Production Release.
+- **Info**: Developer updated to "Manara Engineering / Alessa Technical Services".
+- **Features (Final)**: Watchdog Aliases, Raw Event Monitoring, Configuration Sanitization.
+
 ## 0.1.20
 - **Fix**: Resolved `NameError` related to Watchdog map scope in `run.py`.
 - **Note**: Hotfix for Alias feature.
