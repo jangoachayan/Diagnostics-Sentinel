@@ -146,6 +146,7 @@ async def main():
     # Sanitize inputs (strip quotes just in case)
     raw_watchdogs = options.get("watchdog_entities", [])
     sanitized_watchdogs = [str(w).strip("'\"") for w in raw_watchdogs]
+    logger.info(f"Watchdog Config: Raw={raw_watchdogs} -> Sanitized={sanitized_watchdogs}")
 
     watchdog = WatchdogKernel(
         entities=sanitized_watchdogs,
@@ -155,6 +156,13 @@ async def main():
     # 3. Main Logic Callback
     def on_message(msg):
         if msg.get("type") == "event":
+            # Debug: Log KNX events
+            evt = msg.get("event", {})
+            if evt.get("event_type") == "knx_event":
+                 data = evt.get("data", {})
+                 dest = data.get("destination")
+                 logger.info(f"KNX Event Detected: Dest={dest}. Matched={dest in sanitized_watchdogs}")
+
             handle_event(msg, mqtt_client, watchdog)
 
     ha_client = HomeAssistantClient(
