@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+- **Meta**: Updated developer reference in addon description.
+
 ## 1.0.0
 - **Release**: Official Production Release.
 - **Info**: Developer updated to "Manara Engineering / Alessa Technical Services".

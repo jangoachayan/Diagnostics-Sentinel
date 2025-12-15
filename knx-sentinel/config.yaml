@@ -1,7 +1,7 @@
 name: "KNX Sentinel"
-version: "1.0.0"
+version: "1.0.1"
 slug: "knx_sentinel"
-description: "High-fidelity KNX monitoring and diagnostic agent."
+description: "High-fidelity KNX monitoring and diagnostic agent. Developed by Manara Engineering."
 url: "https://github.com/jangoachayan/Diagnostics-Sentinel"
 arch:
   - aarch64
